@@ -17,9 +17,9 @@
               <v-icon>mdi-clock</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>{{ go.EstimateTime }}</v-list-item-title>
+              <v-list-item-title>{{ lessTime(go.EstimateTime) }}</v-list-item-title>
               <v-list-item-subtitle>
-                {{ go.StopName.Zh_tw }}
+                還有 {{ go.StopCountDown | stopCount }} 站到 {{ go.StopName.Zh_tw }}
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -28,9 +28,9 @@
               <v-icon>mdi-clock</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>{{ back.EstimateTime }}</v-list-item-title>
+              <v-list-item-title>{{ lessTime(back.EstimateTime) }}</v-list-item-title>
               <v-list-item-subtitle>
-                {{ back.StopName.Zh_tw }}
+                還有 {{ back.StopCountDown | stopCount }} 站到 {{ back.StopName.Zh_tw }}
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -41,9 +41,24 @@
 </template>
 
 <script>
+import { interval } from 'rxjs'
+import { format, addSeconds } from 'date-fns'
 import getAuthorizationHeader from '~/core/getAuthorizationHeader'
 
+const timer = interval(1000)
+let subscription
+
 export default {
+  filters: {
+    stopCount (stopCountDown) {
+      return stopCountDown || '?'
+    }
+  },
+  data () {
+    return {
+      afterLoadSec: 0
+    }
+  },
   asyncData ({ $axios }) {
     const headers = getAuthorizationHeader()
     const filter = `StopID%20eq%20'290710'%20or%20StopID%20eq%20'290780'`
@@ -56,5 +71,23 @@ export default {
         }
       })
   },
+  mounted () {
+    subscription = timer.subscribe(() => this.afterLoadSec++)
+  },
+  destroyed () {
+    subscription.unsubscribe()
+  },
+  methods: {
+    lessTime (sec) {
+      const date = addSeconds(null, sec - this.afterLoadSec)
+      if (!sec) {
+        return '未發車或已過站'
+      } else if (sec - this.afterLoadSec < 60) {
+        return '即將進站'
+      } else {
+        return `${format(date, 'mm')}分`
+      }
+    }
+  }
 }
 </script>
