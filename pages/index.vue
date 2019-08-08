@@ -9,12 +9,19 @@
       sm8
       md6
     >
-      <v-card class="mx-auto" tile>
-        <v-subheader>剩餘到站時間</v-subheader>
-        <v-list shaped>
+      <v-card class="mx-auto amber lighten-3" tile style="background: transparent">
+        <v-subheader>
+          <span class="red--text">剩餘到站時間</span>
+        </v-subheader>
+        <v-list shaped class="deep-orange blue-grey lighten-5">
           <v-list-item>
-            <v-list-item-icon>
-              <v-icon>mdi-clock</v-icon>
+            <v-list-item-icon @click="fetchApi(0)">
+              <v-icon v-if="goLoading" class="red--text">
+                fas fa-circle-notch fa-spin
+              </v-icon>
+              <v-icon v-else class="green--text">
+                mdi-reload
+              </v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>{{ lessTime(go.EstimateTime) }}</v-list-item-title>
@@ -24,8 +31,13 @@
             </v-list-item-content>
           </v-list-item>
           <v-list-item>
-            <v-list-item-icon>
-              <v-icon>mdi-clock</v-icon>
+            <v-list-item-icon @click="fetchApi(1)">
+              <v-icon v-if="backLoading" class="red--text">
+                fas fa-circle-notch fa-spin
+              </v-icon>
+              <v-icon v-else class="green--text">
+                mdi-reload
+              </v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>{{ lessTime(back.EstimateTime) }}</v-list-item-title>
@@ -41,11 +53,12 @@
 </template>
 
 <script>
-import { interval } from 'rxjs'
+import { interval, timer } from 'rxjs'
 import { format, addSeconds } from 'date-fns'
-import getAuthorizationHeader from '~/core/getAuthorizationHeader'
+import { fetchAll } from '../core/fetchAll'
 
-const timer = interval(1000)
+const countdownTimer = interval(1000)
+const loadingTimer = timer(1500)
 let subscription
 
 export default {
@@ -56,28 +69,33 @@ export default {
   },
   data () {
     return {
-      afterLoadSec: 0
+      afterLoadSec: 0,
+      go: { EstimateTime: null, StopName: {} },
+      back: { EstimateTime: null, StopName: {} },
+      goLoading: false,
+      backLoading: false
     }
   },
-  asyncData ({ $axios }) {
-    const headers = getAuthorizationHeader()
-    const filter = `StopID%20eq%20'290710'%20or%20StopID%20eq%20'290780'`
-    return $axios.get(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/InterCity/1088?$filter=${filter}&$top=2&$format=JSON`, { headers })
-      .then((res) => {
-        const list = res.data
-        return {
-          go: list.find(it => it.StopID === '290710'),
-          back: list.find(it => it.StopID === '290780')
-        }
-      })
-  },
   mounted () {
-    subscription = timer.subscribe(() => this.afterLoadSec++)
+    this.fetchApi(0)
   },
   destroyed () {
     subscription.unsubscribe()
   },
   methods: {
+    async fetchApi (position) {
+      position === 0 ? this.goLoading = true : this.backLoading = true
+      const res = await fetchAll(this.$axios)
+      const list = res.data
+      this.go = list.find(it => it.StopID === '290710' && it.Direction === 0)
+      this.back = list.find(it => it.StopID === '300865' && it.Direction === 1)
+      loadingTimer.subscribe(() => {
+        this.goLoading = false
+        this.backLoading = false
+      })
+      subscription && subscription.unsubscribe()
+      subscription = countdownTimer.subscribe(() => this.afterLoadSec++)
+    },
     lessTime (sec) {
       const date = addSeconds(null, sec - this.afterLoadSec)
       if (!sec) {
