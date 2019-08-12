@@ -34,7 +34,7 @@ export default {
 
 <style lang="scss">
   #default-layout {
-    background: #424242 url("/bg.jpg") no-repeat;
+    background: #424242 url("/blj4-app/bg.jpg") no-repeat;
     backface-visibility: visible;
     background-size: cover;
   }
