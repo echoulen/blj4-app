@@ -1,7 +1,5 @@
-import colors from 'vuetify/es5/util/colors'
-
 export default {
-  mode: 'universal',
+  mode: 'spa',
   /*
   ** Headers of the page
   */
@@ -75,6 +73,7 @@ export default {
   ** Build configuration
   */
   build: {
+    publicPath: '/assets/',
     /*
     ** You can extend webpack config here
     */
