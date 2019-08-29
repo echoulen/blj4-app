@@ -10,6 +10,7 @@
         v-text="title"
       />
       <v-spacer />
+      <span v-if="user" class="blue-grey--text text--lighten-5">Hi, {{ user.displayName }}</span>
     </v-app-bar>
     <v-content>
       <v-container>
@@ -23,12 +24,17 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   data () {
     return {
       title: 'BLJ4 APP'
     }
-  }
+  },
+  computed: mapState({
+    user: state => state.user
+  })
 }
 </script>
 

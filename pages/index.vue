@@ -1,5 +1,7 @@
 <template>
+  <login v-if="!user" />
   <v-layout
+    v-else
     column
     justify-center
     align-center
@@ -55,6 +57,9 @@
 <script>
 import { interval, timer } from 'rxjs'
 import { format, addSeconds } from 'date-fns'
+import { mapState } from 'vuex'
+import Login from '../components/Login'
+import { AppContext } from '../core/AppContext'
 import { fetchAll } from '../core/fetchAll'
 
 const countdownTimer = interval(1000)
@@ -62,6 +67,9 @@ const loadingTimer = timer(1500)
 let subscription
 
 export default {
+  components: {
+    Login
+  },
   filters: {
     stopCount (stopCountDown) {
       return stopCountDown || '?'
@@ -76,6 +84,12 @@ export default {
       backLoading: false
     }
   },
+  computed: mapState({
+    user: state => state.user
+  }),
+  beforeCreate () {
+    AppContext.subscribeUserState(this.$store)
+  },
   mounted () {
     this.fetchApi(0)
   },
@@ -88,7 +102,7 @@ export default {
       const res = await fetchAll(this.$axios)
       const list = res.data
       this.go = list.find(it => it.StopID === '290710' && it.Direction === 0)
-      this.back = list.find(it => it.StopID === '300865' && it.Direction === 1)
+      this.back = list.find(it => it.StopID === '300865' && it.Direction === 0)
       loadingTimer.subscribe(() => {
         this.goLoading = false
         this.backLoading = false
@@ -103,7 +117,7 @@ export default {
       } else if (sec - this.afterLoadSec < 60) {
         return '即將進站'
       } else {
-        return `${format(date, 'mm')}分`
+        return `${format(date, 'm')}分`
       }
     }
   }

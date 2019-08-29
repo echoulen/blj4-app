@@ -30,7 +30,8 @@ export default {
   ** Global CSS
   */
   css: [
-    '~/node_modules/@fortawesome/fontawesome-free/css/all.css'
+    '~/node_modules/@fortawesome/fontawesome-free/css/all.css',
+    '~/node_modules/firebaseui/dist/firebaseui.css'
   ],
   /*
   ** Plugins to load before mounting the App
