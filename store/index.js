@@ -6,11 +6,15 @@ export const state = () => ({
 
 export const mutations = {
   setUser (state, user) {
-    state.user = {
-      displayName: user.displayName,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      isAnonymous: user.isAnonymous
+    if (!user) {
+      state.user = null
+    } else {
+      state.user = {
+        displayName: user.displayName,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        isAnonymous: user.isAnonymous
+      }
     }
   }
 }
