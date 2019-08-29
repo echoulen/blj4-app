@@ -4,7 +4,7 @@
 
 <script lang="js">
 import * as firebaseui from 'firebaseui'
-import * as firebase from 'firebase'
+import * as firebase from 'firebase/app'
 
 const uiConfig = {
   signInSuccessUrl: '/',
